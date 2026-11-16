@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informative Speech Grading Rubric</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f5f0e8;
+    --surface: #fffdf9;
+    --border: #d4c9b0;
+    --accent: #2d5a3d;
+    --accent-light: #e8f0ea;
+    --warn: #8b3a2e;
+    --text: #1a1a18;
+    --muted: #6b6454;
+    --score-bg: #2d5a3d;
+    --score-fg: #ffffff;
+    --tag-bg: #e8f0ea;
+    --tag-active: #2d5a3d;
+    --tag-active-fg: #fff;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 24px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+  }
+
+  header .subtitle { font-size: 0.72rem; opacity: 0.7; margin-top: 1px; }
+
+  .header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .score-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 4px 12px;
+    text-align: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .score-badge .total { font-size: 1.1rem; font-weight: 600; line-height: 1; }
+  .score-badge .label { font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    align-items: center;
+  }
+
+  .controls label { font-size: 0.8rem; opacity: 0.8; }
+
+  select, input[type="text"], textarea {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  select:focus, input:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(45,90,61,0.12);
+  }
+
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary { background: #fff; color: var(--accent); }
+  .btn-primary:hover { background: var(--accent-light); }
+  .btn-outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.5); }
+  .btn-outline:hover { background: rgba(255,255,255,0.1); }
+  .btn-warn { background: var(--warn); color: #fff; }
+  .btn-warn:hover { filter: brightness(1.1); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 32px 20px 150px; }  /* bottom room so the um counter never covers the action buttons */
+
+  .section-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin: 32px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+  }
+
+  .card:focus-within { border-color: var(--accent); }
+
+  /* Completion Dimming Styles */
+  .card.completed {
+    background-color: #f8f9fc;
+    border-color: #e2e8f0;
+  }
+  .card.completed .chip:not(.active) {
+    background: #eef2f5;
+    color: #94a3b8;
+    border-color: transparent;
+  }
+  .card.completed .scale-btn:not(.active) {
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    background: #fdfefe;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+    line-height: 1.35;
+  }
+
+  .card-score {
+    background: var(--score-bg);
+    color: var(--score-fg);
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 54px;
+    text-align: center;
+  }
+
+  .card-score.na { background: #bbb; }
+
+  .scale-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .scale-label { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
+  .scale-buttons {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .scale-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+  }
+
+  .scale-btn:hover { border-color: var(--accent); background: var(--accent-light); color: var(--text); }
+  .scale-btn.active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+
+  .chip {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    padding: 5px 11px;
+    border-radius: 20px;
+    background: var(--tag-bg);
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.12s;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--text); }
+  .chip.active { background: var(--tag-active) !important; color: var(--tag-active-fg) !important; border-color: var(--tag-active) !important; }
+
+  .other-input {
+    width: 100%;
+    margin-top: 6px;
+    font-size: 0.85rem;
+    resize: vertical;
+    min-height: 36px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1.5px solid var(--border);
+  }
+
+  .btn-lg {
+    padding: 12px 28px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  .time-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .time-row label { font-size: 0.85rem; color: var(--muted); }
+
+  .penalty-row {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1.5px dashed var(--border);
+    font-size: 0.85rem;
+  }
+  .penalty-row.available { border-style: solid; border-color: var(--warn); background: #fbf1ef; }
+  .penalty-row .penalty-label { color: var(--muted); }
+  .penalty-opt { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-weight: 500; }
+  .penalty-opt input { width: 16px; height: 16px; accent-color: var(--warn); cursor: pointer; }
+  .penalty-opt.disabled { opacity: 0.4; cursor: default; }
+  .penalty-opt.disabled input { cursor: default; }
+  .penalty-status { color: var(--muted); font-size: 0.8rem; }
+  .penalty-row.available .penalty-status { color: var(--warn); font-weight: 500; }
+
+  #session-bar {
+    background: #1e3d2a;
+    color: #fff;
+    padding: 10px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    min-height: 42px;
+  }
+
+  #session-bar .session-label { opacity: 0.7; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.72rem; }
+
+  .session-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 3px 10px 3px 12px;
+    font-size: 0.8rem;
+  }
+
+  .session-pill .remove-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+    border-radius: 50%;
+    transition: color 0.15s;
+  }
+  .session-pill .remove-btn:hover { color: #ff8a80; }
+
+  #session-bar .spacer { flex: 1; }
+
+  .btn-session-export {
+    font-family: 'DM Sans', sans-serif;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .btn-session-export:hover { background: rgba(255,255,255,0.25); }
+  .btn-session-export:disabled { opacity: 0.4; cursor: default; }
+
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(3px);
+  }
+  .modal-backdrop.hidden { display: none; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:none; } }
+
+  .modal h2 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; margin-bottom: 8px; }
+  .modal p { font-size: 0.88rem; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 24px; }
+
+  .btn-modal-primary {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; transition: filter 0.15s;
+  }
+  .btn-modal-primary:hover { filter: brightness(1.1); }
+
+  .btn-modal-secondary {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg); color: var(--text);
+    border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn-modal-secondary:hover { background: var(--border); }
+
+  .roster-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; max-height: 260px; overflow-y: auto; }
+
+  .roster-item {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 6px 10px;
+  }
+  .roster-item input { flex: 1; border: none; background: transparent; font-size: 0.88rem; padding: 2px 4px; }
+  .roster-item input:focus { outline: none; }
+  .roster-item .del-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 1.1rem; line-height: 1;
+    padding: 0 2px; transition: color 0.15s;
+  }
+  .roster-item .del-btn:hover { color: var(--warn); }
+
+  .roster-paste-row { display: flex; gap: 8px; align-items: flex-start; }
+  .roster-paste-row textarea { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; resize: vertical; min-height: 60px; }
+  .btn-add-student {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--accent-light); color: var(--accent);
+    border: 1.5px solid var(--accent); border-radius: 8px;
+    padding: 8px 14px; font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+  }
+  .btn-add-student:hover { background: var(--accent); color: #fff; }
+
+  .card.error {
+    border-color: var(--warn) !important;
+    box-shadow: 0 0 0 3px rgba(139,58,46,0.15), var(--shadow);
+    animation: errorShake 0.35s ease;
+  }
+  @keyframes errorShake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+  }
+  .error-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    background: var(--warn);
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-left: 8px;
+    vertical-align: middle;
+    font-weight: 500;
+  }
+
+  /* Floating Um Counter */
+  #um-counter {
+    position: fixed;
+    bottom: 28px;
+    left: 28px;
+    z-index: 150;   /* above the sticky header (100), below modals (200) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+  }
+  #um-btn {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--warn);
+    color: #fff; border: none; cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: transform 0.1s, filter 0.15s;
+    line-height: 1; gap: 1px;
+  }
+  #um-btn:hover { filter: brightness(1.1); }
+  #um-btn:active { transform: scale(0.92); }
+  #um-btn.bump { animation: umBump 0.2s ease; }
+  @keyframes umBump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.22); }
+    100% { transform: scale(1); }
+  }
+  #um-count-display {
+    font-size: 1.6rem; font-weight: 700;
+    font-family: 'DM Sans', sans-serif; line-height: 1;
+  }
+  #um-label {
+    font-size: 0.62rem; opacity: 0.85;
+    font-family: 'DM Sans', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  #um-reset {
+    background: rgba(139,58,46,0.15);
+    border: 1px solid rgba(139,58,46,0.3);
+    color: var(--warn); border-radius: 12px;
+    padding: 2px 10px; font-size: 0.75rem;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  #um-reset:hover { background: rgba(139,58,46,0.25); }
+
+  #autosave-indicator { font-size: 0.72rem; opacity: 0.55; white-space: nowrap; transition: opacity 0.5s; }
+  #autosave-indicator.pulse { opacity: 1; }
+
+  /* ── Printable feedback sheets ── */
+  #print-root { display: none; }
+
+  @media print {
+    @page { size: letter; margin: 0.5in; }
+    body { background: #fff; min-height: 0; }
+    body > *:not(#print-root) { display: none !important; }
+    #print-root { display: block; }
+  }
+
+  .print-sheet {
+    break-after: page;
+    font-family: 'DM Sans', sans-serif;
+    color: #000;
+    font-size: 10pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-sheet:last-child { break-after: auto; }
+
+  .print-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid #000;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+  }
+  .print-head h2 { font-family: 'DM Serif Display', serif; font-size: 20pt; font-weight: 400; line-height: 1.1; }
+  .print-head .print-sub { font-size: 9pt; color: #444; margin-top: 2px; }
+  .print-total { text-align: right; }
+  .print-total .big { font-size: 18pt; font-weight: 600; line-height: 1; }
+  .print-total .small { font-size: 9pt; color: #444; }
+
+  .print-table { width: 100%; border-collapse: collapse; }
+  .print-table th, .print-table td {
+    border: 1px solid #999;
+    padding: 4px 6px;
+    vertical-align: top;
+    text-align: left;
+  }
+  .print-table th { background: #e8e8e8; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; }
+  .print-table tr { break-inside: avoid; }
+  .print-table .sec td {
+    background: #f3f3f3;
+    font-weight: 600;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .print-table td.crit { width: 36%; }
+  .print-table td.score { width: 62px; text-align: center; white-space: nowrap; font-weight: 600; }
+
+  .print-penalty {
+    margin-top: 10px;
+    border: 1.5px solid #000;
+    padding: 6px 8px;
+    font-size: 9.5pt;
+    break-inside: avoid;
+  }
+
+  .print-overall {
+    margin-top: 10px;
+    border: 1px solid #999;
+    padding: 6px 8px;
+    min-height: 0.6in;
+    break-inside: avoid;
+  }
+  .print-overall .lbl { font-size: 8.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+
+  @media (max-width: 600px) {
+    header { padding: 16px 16px 14px; }
+    #session-bar { padding: 10px 16px; }
+    main { padding: 20px 12px 150px; }
+    .card { padding: 16px; }
+    .modal { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div>
+      <h1>Informative Speech Grading</h1>
+      <div class="subtitle">Ivy Tech Community College</div>
+    </div>
+    <div class="score-badge">
+      <div class="total" id="total-score">0</div>
+      <div class="label">/ <span id="max-score">0</span> pts &nbsp;<span id="pct-score" style="opacity:0.75;">0%</span></div>
+    </div>
+  </div>
+  <div class="controls">
+    <div>
+      <label>Speaker: </label>
+      <select id="speaker-select">
+        <option value="">— Select Speaker —</option>
+      </select>
+    </div>
+    <button class="btn btn-outline" onclick="openRoster()">✎ Roster</button>
+    <button class="btn btn-outline" onclick="clearForm()">↺ Clear</button>
+    <span id="autosave-indicator">● autosave on</span>
+  </div>
+</header>
+
+<!-- Restore session modal -->
+<div class="modal-backdrop hidden" id="restore-modal">
+  <div class="modal">
+    <h2>Restore previous session?</h2>
+    <p id="restore-msg"></p>
+    <div class="modal-actions">
+      <button class="btn-modal-secondary" onclick="discardRestore()">Start fresh</button>
+      <button class="btn-modal-primary" onclick="doRestore()">Restore session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Roster editor modal -->
+<div class="modal-backdrop hidden" id="roster-modal">
+  <div class="modal">
+    <h2>Manage Roster</h2>
+    <p>Edit or remove names above, then paste new names below — one per line.</p>
+    <div class="roster-list" id="roster-list"></div>
+    <div class="roster-paste-row">
+      <textarea id="paste-input" rows="3" placeholder="Paste names here, one per line..."></textarea>
+      <button class="btn-add-student" onclick="addPasted()">+ Add</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-secondary" onclick="closeRoster()">Cancel</button>
+      <button class="btn-modal-primary" onclick="saveRoster()">Save Roster</button>
+    </div>
+  </div>
+</div>
+
+<div id="session-bar">
+  <span class="session-label">Session</span>
+  <div id="session-pills" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <span style="opacity:0.45;font-style:italic;">No grades saved yet</span>
+  </div>
+  <span class="spacer"></span>
+  <button class="btn-session-export" id="print-all-btn" onclick="printAll()" disabled>🖨 Print All</button>
+  <button class="btn-session-export" id="export-all-btn" onclick="exportAllCSV()" disabled>⬇ Export All (<span id="session-count">0</span>)</button>
+</div>
+
+<main id="form-root">
+  <!-- Sections injected by JS -->
+</main>
+
+<div id="toast"></div>
+
+<!-- Printable feedback sheets (only visible when printing) -->
+<div id="print-root"></div>
+
+<script>
+// ── Storage keys ──────────────────────────────────────────────────────────────
+const LS_SESSION = "speechGrader_session";
+const LS_ROSTER  = "speechGrader_roster";
+const LS_DRAFT   = "speechGrader_draft";   // the student currently being graded
+
+// ── Printed sheet title ───────────────────────────────────────────────────────
+const PRINT_TITLE = "Informative Speech";
+
+// ── Time limit & optional penalty ─────────────────────────────────────────────
+// Penalty checkboxes only unlock when the speech time is outside this range
+// (inclusive: exactly 4:00 or 6:00 counts as within the limit).
+const TIME_MIN_SEC = 4 * 60;      // 4:00
+const TIME_MAX_SEC = 6 * 60;      // 6:00
+const TIME_PENALTIES = [5, 10];   // % of the student's rubric score
+
+// ── Default roster ────────────────────────────────────────────────────────────
+const DEFAULT_ROSTER = [];
+
+// ── Overall comments (Additional section chips) ───────────────────────────────
+const OVERALL_COMMENTS = [
+  "Good job.",
+  "Work on slowing down a bit.",
+  "Work on sounding more conversational and natural.",
+  "Work on smoothing out delivery.",
+  "Work on standing still and minimizing movement.",
+  "Look at your notes less and make more eye contact with the audience.",
+  "Work on projecting your voice and being louder.",
+  "Work on showing more passion and enthusiasm.",
+  "Cite your sources more clearly and consistently.",
+  "Work on minimizing ums, uhs, and other filler words.",
+];
+
+// ── Rubric data ───────────────────────────────────────────────────────────────
+const RUBRIC = [
+  {
+    section: "Introduction",
+    items: [
+      { id: "attention", label: "Gained attention and interest", max: 5, comments: ["Good", "Needs attention getter", "Try to think of a more creative attention getter", "Don't start with \"My name is...\"", "The first thing you say should be your attention getter", "Don't start with \"today I will...\"", "Don't say \"I did my speech on...\"", "If you want the audience to respond, be sure to give them a heads up"] },
+      { id: "topic", label: "Clearly describes topic", max: 4, comments: ["Good", "Introduced topic clearly", "What is your topic?", "Be sure to clearly state the topic"] },
+      { id: "credibility", label: "Establishes credibility to speak on this topic", max: 4, comments: ["Good", "Don't say \"I am credible because...\"", "No credibility?", "Say the credibility earlier"] },
+      { id: "preview", label: "Previews all main points in order of appearance", max: 4, comments: ["Good", "Need preview", "Make sure you have a clear preview: 'First I will do X then Y and then Z'"] },
+    ]
+  },
+  {
+    section: "Delivery",
+    items: [
+      { id: "notes", label: "Notes barely visible", max: 5, comments: ["Good", "Hold notes lower", "Don't read from notes", "Go longer without looking at notes", "Don't look at the screen", "Use notes! Better to have them and not need them", "Use fewer notes!"] },
+      { id: "eye_contact", label: "Eye contact sustained & broad", max: 5, comments: ["Good", "Not too bad", "Look at the audience more", "Don't read!", "Look at your notes less", "Look at the screens less", "Don't read off the screen"] },
+      { id: "movement", label: "Appropriate, engaging physical movement", max: 5, comments: ["Good", "Try to talk with your hands a little less", "Too much talking with hands", "Fidgeting", "Shifting weight", "Don't move around!", "Hands in pocket", "Not too bad", "Swaying"] },
+      { id: "delivery", label: "Effective volume, pace, tone, minimal fillers (um, uh), and passion", max: 5, comments: ["Good", "More passion!", "Louder!", "Um/uhs", "If you don't sound like you care, why should your audience?", "Try to avoid pausing between phrases", "Talk to the back of the room!", "Try to smooth out delivery — not as choppy", "And...and...and...", "Not too bad", "Work on minimizing uhs and pausing between phrases"] },
+      { id: "extemp", label: "Speech is extemporaneous", max: 5, comments: ["Good", "Don't write your speech outline as an essay", "Only write out the main points, not every word", "Don't try to memorize your speech", "Don't read from your slides!", "Try to be more conversational and natural", "Rehearse more", "Not too bad"] },
+    ]
+  },
+  {
+    section: "Content",
+    items: [
+      { id: "informative", label: "Speech is informative and not persuasive", max: 5, comments: ["Good", "A little bit persuasive", "There are a lot of facts — go into more depth on fewer facts"] },
+      { id: "audience", label: "Relates topic to audience", max: 4, comments: ["Good", "Relate the topic to us more", "Use words like \"we\" and \"us\" more to include the audience", "More"] },
+      { id: "main_points", label: "Has 3–4 identifiable main points", max: 4, comments: ["Good", "Make your main points more distinct", "Go into more depth — don't just rattle off facts", "Without full transitions it is difficult to tell when one main point ends and another begins"] },
+      { id: "sources_verbal", label: "Sources cited VERBALLY (3 required)", max: 6, comments: ["Good", "Say your sources out loud!", "I only heard one source?", "I only heard 2 sources?", "Don't just throw your sources in at the end"] },
+      { id: "sources_quality", label: "Sources used are credible, variety, and facts cited thoroughly", max: 10, comments: ["Good", "Give a source for EVERY fact EVERY time you use it", "These are not the best sources", "Say the source FIRST and then the information", "Say your sources WHEN you use them!"] },
+    ]
+  },
+  {
+    section: "Visual Aids",
+    items: [
+      { id: "visual", label: "Visual aids present and well designed", max: 4, comments: ["Good", "Make text on slides larger", "Put less information on slides", "Don't use transitions on slides", "Remember not to put full sentences on slides", "Keep up with your slides", "No visual aids?"] },
+    ]
+  },
+  {
+    section: "Conclusion",
+    items: [
+      { id: "transitions", label: "Complete transitions between main points including internal reviews and previews", max: 5, comments: ["Good", "Need complete internal review and internal preview — \"Now that I've talked about X, next I will talk about Y\"", "Be sure to have transitions between all points"] },
+      { id: "summary", label: "Conclusion has specific, detailed summary of main points", max: 5, comments: ["Good", "More", "Restate topic", "Need a conclusion", "Restate main points"] },
+      { id: "closer", label: "Finishes strong", max: 5, comments: ["Good", "Need a closer!", "More!", "Don't trail off at the end", "To make the closer effective, slow down a little to signal the end"] },
+    ]
+  },
+];
+
+// ── App state ─────────────────────────────────────────────────────────────────
+let roster  = [];
+let session = [];
+
+const state = {
+  scores: {},
+  others: {},
+  time: "",
+  finalComment: "",
+  umCount: 0,
+  timePenalty: 0,   // 0, or one of TIME_PENALTIES (percent)
+};
+
+let timerStart = null;
+let timerInterval = null;
+let manualTime = false;
+
+// ── localStorage helpers ──────────────────────────────────────────────────────
+function persistSession() {
+  try { localStorage.setItem(LS_SESSION, JSON.stringify(session)); } catch(e) {}
+  flashAutosave("session saved");
+}
+
+function persistRoster() {
+  try { localStorage.setItem(LS_ROSTER, JSON.stringify(roster)); } catch(e) {}
+}
+
+function loadStoredRoster() {
+  try {
+    const r = localStorage.getItem(LS_ROSTER);
+    return r ? JSON.parse(r) : null;
+  } catch(e) { return null; }
+}
+
+function loadStoredSession() {
+  try {
+    const s = localStorage.getItem(LS_SESSION);
+    return s ? JSON.parse(s) : null;
+  } catch(e) { return null; }
+}
+
+function flashAutosave(label = "autosaved") {
+  const el = document.getElementById("autosave-indicator");
+  el.textContent = "● " + label;
+  el.classList.add("pulse");
+  setTimeout(() => el.classList.remove("pulse"), 1500);
+}
+
+// ── Draft autosave (the student currently being graded) ───────────────────────
+// Any click, keystroke or dropdown change anywhere on the page schedules a
+// save of the current form a moment later (after the click's own handler has
+// updated `state`). An empty form removes the draft instead of saving it, so
+// Clear and "Save Grade to Session" both leave nothing behind.
+let draftTimer = null;
+let restorePending = false;   // don't overwrite a stored draft before the restore prompt is answered
+
+function currentDraft() {
+  return {
+    speaker: document.getElementById("speaker-select").value,
+    scores: { ...state.scores },
+    others: { ...state.others },
+    time: state.time,
+    finalComment: state.finalComment,
+    umCount: state.umCount,
+    timePenalty: state.timePenalty,
+  };
+}
+
+// Defensive: a damaged or partial draft in storage must never throw here,
+// since checkRestore() runs at startup and also gates the session restore.
+function isDraftEmpty(d) {
+  if (!d || typeof d !== "object") return true;
+  return !d.speaker &&
+    Object.keys(d.scores || {}).length === 0 &&
+    !Object.values(d.others || {}).some(v => typeof v === "string" && v.trim()) &&
+    !d.time && !String(d.finalComment || "").trim() &&
+    !d.umCount && !d.timePenalty;
+}
+
+function saveDraftNow() {
+  clearTimeout(draftTimer);
+  if (restorePending) return;
+  const d = currentDraft();
+  try {
+    if (isDraftEmpty(d)) {
+      localStorage.removeItem(LS_DRAFT);
+    } else {
+      localStorage.setItem(LS_DRAFT, JSON.stringify(d));
+      flashAutosave("draft saved");
+    }
+  } catch(e) {}
+}
+
+function scheduleDraftSave() {
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(saveDraftNow, 300);
+}
+
+function clearDraft() {
+  clearTimeout(draftTimer);
+  try { localStorage.removeItem(LS_DRAFT); } catch(e) {}
+}
+
+function loadStoredDraft() {
+  try {
+    const d = localStorage.getItem(LS_DRAFT);
+    return d ? JSON.parse(d) : null;
+  } catch(e) { return null; }
+}
+
+["input", "change", "click"].forEach(evt => document.addEventListener(evt, scheduleDraftSave));
+// Flush on refresh/close so the latest typing (and running timer) isn't lost
+window.addEventListener("pagehide", saveDraftNow);
+
+// Puts a stored draft back into `state` and onto the page: speaker, score
+// buttons, comments + chip highlights, time, penalty, um count.
+function applyDraft(d) {
+  clearForm();   // fresh UI + resets timer state
+  state.scores = d.scores || {};
+  state.others = d.others || {};
+  state.time = d.time || "";
+  state.finalComment = d.finalComment || "";
+  state.umCount = d.umCount || 0;
+
+  const sel = document.getElementById("speaker-select");
+  if (d.speaker && roster.includes(d.speaker)) sel.value = d.speaker;
+
+  RUBRIC.forEach(sec => sec.items.forEach(item => {
+    const card = document.getElementById(`card-${item.id}`);
+    const val = state.scores[item.id];
+    if (val !== undefined) {
+      card.querySelectorAll(".scale-btn").forEach(b => b.classList.toggle("active", parseInt(b.dataset.val) === val));
+      const badge = document.getElementById(`score-badge-${item.id}`);
+      badge.textContent = `${val}/${item.max}`;
+      badge.classList.remove("na");
+    }
+    const ta = card.querySelector(".other-input");
+    ta.value = state.others[item.id] || "";
+    card.querySelectorAll(".chip").forEach(chip => {
+      chip.classList.toggle("active", phraseRegex(chip.textContent).test(ta.value));
+    });
+    checkCardCompletion(item.id);
+  }));
+
+  // A restored time is treated as typed, so the auto-timer won't overwrite it
+  if (state.time) {
+    manualTime = true;
+    document.getElementById("time-input").value = state.time;
+  }
+  updatePenaltyAvailability();
+  if (d.timePenalty) setPenalty(d.timePenalty, true);
+
+  const fc = document.getElementById("final-comment");
+  fc.value = state.finalComment;
+  syncOverallChips(fc.value);
+
+  document.getElementById("um-count-display").textContent = state.umCount;
+  updateTotal();
+  saveDraftNow();   // clearForm() above removed the stored copy; write it back
+}
+
+// ── Restore modal ─────────────────────────────────────────────────────────────
+// Offers to bring back both the saved session and any unfinished draft.
+function checkRestore() {
+  const stored = loadStoredSession();
+  const draft = loadStoredDraft();
+  const hasSession = stored && stored.length > 0;
+  const hasDraft = draft && !isDraftEmpty(draft);
+  if (!hasSession && !hasDraft) return;
+
+  const parts = [];
+  if (hasSession) parts.push(`<strong>${stored.length}</strong> graded student(s)`);
+  if (hasDraft) parts.push(`an unfinished grade${draft.speaker ? ` for <strong>${escapeHTML(draft.speaker)}</strong>` : ""}`);
+  document.getElementById("restore-msg").innerHTML =
+    `Saved work was found from your last visit: ${parts.join(" and ")}. Would you like to pick up where you left off?`;
+
+  restorePending = true;
+  document.getElementById("restore-modal").classList.remove("hidden");
+}
+
+function doRestore() {
+  restorePending = false;
+  const stored = loadStoredSession();
+  const draft = loadStoredDraft();
+  const msgs = [];
+  if (stored && stored.length > 0) {
+    session = stored;
+    renderSessionBar();
+    msgs.push(`${session.length} student grade(s)`);
+  }
+  if (draft && !isDraftEmpty(draft)) {
+    applyDraft(draft);
+    msgs.push(`unfinished grade${draft.speaker ? " for " + draft.speaker : ""}`);
+  }
+  document.getElementById("restore-modal").classList.add("hidden");
+  showToast(`✓ Restored ${msgs.join(" + ")}`);
+}
+
+function discardRestore() {
+  restorePending = false;
+  localStorage.removeItem(LS_SESSION);
+  clearDraft();
+  document.getElementById("restore-modal").classList.add("hidden");
+}
+
+// ── Roster management ─────────────────────────────────────────────────────────
+let rosterDraft = [];
+
+function openRoster() {
+  rosterDraft = [...roster];
+  renderRosterList();
+  document.getElementById("roster-modal").classList.remove("hidden");
+  document.getElementById("paste-input").value = "";
+}
+
+function closeRoster() {
+  document.getElementById("roster-modal").classList.add("hidden");
+}
+
+function renderRosterList() {
+  const list = document.getElementById("roster-list");
+  if (rosterDraft.length === 0) {
+    list.innerHTML = `<div style="font-size:0.85rem;color:var(--muted);padding:8px 0;">No students yet — add some below.</div>`;
+    return;
+  }
+  list.innerHTML = rosterDraft.map((name, i) => `
+    <div class="roster-item">
+      <input type="text" value="${escapeHTML(name)}" onchange="rosterDraft[${i}]=this.value" placeholder="Student name">
+      <button class="del-btn" onclick="removeRosterItem(${i})" title="Remove">×</button>
+    </div>
+  `).join("");
+}
+
+function removeRosterItem(i) {
+  rosterDraft.splice(i, 1);
+  renderRosterList();
+}
+
+function addPasted() {
+  const ta = document.getElementById("paste-input");
+  const names = ta.value.split(/\r?\n/).map(n => n.trim()).filter(n => n.length > 0);
+  if (names.length === 0) return;
+  rosterDraft.push(...names);
+  ta.value = "";
+  renderRosterList();
+  const list = document.getElementById("roster-list");
+  list.scrollTop = list.scrollHeight;
+}
+
+function saveRoster() {
+  const inputs = document.querySelectorAll("#roster-list .roster-item input");
+  inputs.forEach((inp, i) => { rosterDraft[i] = inp.value.trim(); });
+
+  // Catch any names still sitting in the paste box that weren't explicitly
+  // added via "+ Add" — Save Roster should absorb them too, not discard them.
+  const ta = document.getElementById("paste-input");
+  const leftoverNames = ta.value.split(/\r?\n/).map(n => n.trim()).filter(n => n.length > 0);
+  if (leftoverNames.length > 0) {
+    rosterDraft.push(...leftoverNames);
+    ta.value = "";
+  }
+
+  roster = rosterDraft.filter(n => n.length > 0);
+  persistRoster();
+  rebuildSpeakerSelect();
+  closeRoster();
+  showToast(`Roster saved — ${roster.length} student(s)`);
+}
+
+function rebuildSpeakerSelect() {
+  const sel = document.getElementById("speaker-select");
+  const current = sel.value;
+  sel.innerHTML = `<option value="">— Select Speaker —</option>` +
+    roster.map(n => `<option value="${escapeHTML(n)}"${n === current ? " selected" : ""}>${escapeHTML(n)}</option>`).join("");
+}
+
+// ── Session helpers ───────────────────────────────────────────────────────────
+function calcTotal(scores) {
+  let total = 0, maxTotal = 0;
+  RUBRIC.forEach(s => s.items.forEach(item => {
+    maxTotal += item.max;
+    if (scores[item.id] !== undefined) total += scores[item.id];
+  }));
+  return { total, maxTotal };
+}
+
+function validateForm() {
+  document.querySelectorAll(".card.error").forEach(c => c.classList.remove("error"));
+  document.querySelectorAll(".error-tag").forEach(t => t.remove());
+
+  const errors = [];
+
+  RUBRIC.forEach(sec => sec.items.forEach(item => {
+    const missing = [];
+    if (state.scores[item.id] === undefined) missing.push("score");
+    const hasComment = state.others[item.id] && state.others[item.id].trim().length > 0;
+    if (!hasComment) missing.push("comment");
+    if (missing.length > 0) errors.push({ id: item.id, missing });
+  }));
+
+  if (errors.length === 0) return true;
+
+  errors.forEach(({ id, missing }) => {
+    const card = document.getElementById(`card-${id}`);
+    if (!card) return;
+    card.classList.add("error");
+    const titleEl = card.querySelector(".card-title");
+    const tag = document.createElement("span");
+    tag.className = "error-tag";
+    tag.textContent = missing.join(" & ") + " needed";
+    titleEl.appendChild(tag);
+  });
+
+  const firstCard = document.getElementById(`card-${errors[0].id}`);
+  if (firstCard) {
+    const headerH = document.querySelector("header").offsetHeight +
+                    document.getElementById("session-bar").offsetHeight + 12;
+    const top = firstCard.getBoundingClientRect().top + window.scrollY - headerH;
+    window.scrollTo({ top, behavior: "smooth" });
+  }
+
+  showToast(`${errors.length} item${errors.length > 1 ? "s" : ""} still need attention`);
+  return false;
+}
+
+function saveToSession() {
+  const speaker = document.getElementById("speaker-select").value;
+  if (!speaker) { showToast("Please select a speaker first!"); return; }
+
+  if (!validateForm()) return;
+
+  const existing = session.findIndex(s => s.speaker === speaker);
+  if (existing >= 0) {
+    if (!confirm(`${speaker} already has a saved grade. Overwrite it?`)) return;
+    session.splice(existing, 1);
+  }
+
+  
+  const { total, maxTotal } = calcTotal(state.scores);
+  const timestamp = new Date().toLocaleString("en-US", { month:"numeric", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit", second:"2-digit", hour12:true });
+
+  session.push({
+    speaker,
+    scores: { ...state.scores },
+    others: { ...state.others },
+    time: state.time,
+    finalComment: state.finalComment,
+    umCount: state.umCount,
+    timePenalty: state.timePenalty,
+    timestamp,
+    total,
+    maxTotal,
+  });
+
+  persistSession();
+  renderSessionBar();
+  showToast(`✓ ${speaker} saved (${session.length} total)`);
+  clearForm();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function removeFromSession(speaker) {
+  const idx = session.findIndex(s => s.speaker === speaker);
+  if (idx >= 0) session.splice(idx, 1);
+  persistSession();
+  renderSessionBar();
+}
+
+function renderSessionBar() {
+  const pillsEl  = document.getElementById("session-pills");
+  const countEl  = document.getElementById("session-count");
+  const exportBtn = document.getElementById("export-all-btn");
+
+  countEl.textContent = session.length;
+  exportBtn.disabled = session.length === 0;
+  document.getElementById("print-all-btn").disabled = session.length === 0;
+
+  if (session.length === 0) {
+    pillsEl.innerHTML = `<span style="opacity:0.45;font-style:italic;">No grades saved yet</span>`;
+    return;
+  }
+
+  pillsEl.innerHTML = session.map(s =>
+    `<span class="session-pill">
+      ${escapeHTML(s.speaker)} <span style="opacity:0.6;">${fmtScore(applyPenalty(s.total, s.timePenalty))}/${s.maxTotal}${s.timePenalty ? ` (−${s.timePenalty}%)` : ""}</span>
+      <button class="remove-btn" title="Remove" data-speaker="${escapeHTML(s.speaker)}">×</button>
+    </span>`
+  ).join("");
+
+  // dataset gives back the original (unescaped) name
+  pillsEl.querySelectorAll(".remove-btn").forEach(btn =>
+    btn.addEventListener("click", () => removeFromSession(btn.dataset.speaker)));
+}
+
+// ── Build grading UI ──────────────────────────────────────────────────────────
+function buildUI() {
+  const root = document.getElementById("form-root");
+  root.innerHTML = "";
+
+  RUBRIC.forEach(sec => {
+    const label = document.createElement("div");
+    label.className = "section-label";
+    label.textContent = sec.section;
+    root.appendChild(label);
+    sec.items.forEach(item => {
+      root.appendChild(buildCard(item));
+    });
+  });
+
+  const label2 = document.createElement("div");
+  label2.className = "section-label";
+  label2.textContent = "Additional";
+  root.appendChild(label2);
+
+  const addCard = document.createElement("div");
+  addCard.className = "card";
+  addCard.innerHTML = `
+    <div class="time-row" style="margin-bottom:14px;">
+      <label for="time-input">Speech time:</label>
+      <input type="text" id="time-input" placeholder="e.g. 5:32" style="width:100px;" oninput="manualTime=true; clearInterval(timerInterval); state.time=this.value; updatePenaltyAvailability();">
+    </div>
+    <div class="penalty-row" id="penalty-row">
+      <span class="penalty-label">Time penalty (optional):</span>
+      ${TIME_PENALTIES.map(p => `
+        <label class="penalty-opt disabled">
+          <input type="checkbox" class="penalty-box" data-pct="${p}" disabled onchange="setPenalty(${p}, this.checked)"> −${p}%
+        </label>`).join("")}
+      <span class="penalty-status" id="penalty-status"></span>
+    </div>
+    <label style="font-size:0.85rem;color:var(--muted);display:block;margin-bottom:6px;">
+  Overall comments
+</label>
+    <div class="chips" id="overall-comment-chips"></div>
+    <textarea class="other-input" id="final-comment" rows="3" placeholder="General feedback..." oninput="state.finalComment = this.value; syncOverallChips(this.value);"></textarea>
+  `;
+  root.appendChild(addCard);
+
+  // Populate overall-comment chips from the OVERALL_COMMENTS array
+  const chipsEl = addCard.querySelector("#overall-comment-chips");
+  OVERALL_COMMENTS.forEach(text => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.textContent = text;
+    chip.onclick = () => toggleOverall(chip, text);
+    chipsEl.appendChild(chip);
+  });
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  actions.innerHTML = `
+    <button class="btn btn-lg" style="background:var(--accent);color:#fff;" onclick="saveToSession()">＋ Save Grade to Session</button>
+    <button class="btn btn-lg" style="color:var(--text);border-color:var(--border);background:#fff;border:1.5px solid var(--border);" onclick="clearForm()">↺ Clear</button>
+    <button class="btn btn-lg" style="background:#1e3d2a;color:#fff;" onclick="exportAllCSV()">⬇ Export All</button>
+    <button class="btn btn-lg" style="background:#1e3d2a;color:#fff;" onclick="printAll()">🖨 Print All</button>
+  `;
+  root.appendChild(actions);
+
+  updatePenaltyAvailability();
+  updateTotal();
+}
+
+function buildCard(item) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.id = `card-${item.id}`;
+
+  const hdr = document.createElement("div");
+  hdr.className = "card-header";
+  hdr.innerHTML = `<div class="card-title">${item.label}</div><div class="card-score na" id="score-badge-${item.id}">—/${item.max}</div>`;
+  card.appendChild(hdr);
+
+  const scaleRow = document.createElement("div");
+  scaleRow.className = "scale-row";
+  const lblLeft = document.createElement("span");
+  lblLeft.className = "scale-label";
+  lblLeft.textContent = "disagree";
+  scaleRow.appendChild(lblLeft);
+
+  const btns = document.createElement("div");
+  btns.className = "scale-buttons";
+  for (let i = 1; i <= item.max; i++) {
+    const b = document.createElement("button");
+    b.className = "scale-btn";
+    b.textContent = i;
+    b.dataset.val = i;
+    b.onclick = () => setScore(item.id, i, btns, item.max);
+    btns.appendChild(b);
+  }
+  scaleRow.appendChild(btns);
+
+  const lblRight = document.createElement("span");
+  lblRight.className = "scale-label";
+  lblRight.textContent = "agree";
+  scaleRow.appendChild(lblRight);
+  card.appendChild(scaleRow);
+
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  item.comments.forEach(c => {
+    const chip = document.createElement("button");
+    chip.className = "chip";
+    chip.textContent = c;
+    chip.onclick = () => toggleChip(item.id, c, chip);
+    chips.appendChild(chip);
+  });
+  card.appendChild(chips);
+
+  const other = document.createElement("textarea");
+  other.className = "other-input";
+  other.placeholder = "Other comments...";
+  other.rows = 1;
+  other.oninput = () => {
+    state.others[item.id] = other.value;
+
+    // Two-way sync: un-highlight chips if text is manually deleted
+    const cardChips = card.querySelectorAll('.chip');
+    cardChips.forEach(chip => {
+      chip.classList.toggle('active', phraseRegex(chip.textContent).test(other.value));
+    });
+
+    checkCardCompletion(item.id);
+  };
+  card.appendChild(other);
+
+  return card;
+}
+
+// Timer Start logic
+function startTimer() {
+  if (!timerStart && !manualTime) {
+    timerStart = Date.now();
+    timerInterval = setInterval(() => {
+      if (manualTime) return clearInterval(timerInterval);
+      const diff = Math.floor((Date.now() - timerStart) / 1000);
+      const m = Math.floor(diff / 60);
+      const s = (diff % 60).toString().padStart(2, '0');
+      const timeStr = `${m}:${s}`;
+      const input = document.getElementById('time-input');
+      if (input) {
+          input.value = timeStr;
+          state.time = timeStr;
+          updatePenaltyAvailability();
+      }
+    }, 1000);
+  }
+}
+
+function setScore(id, val, container, max) {
+  startTimer();
+  state.scores[id] = val;
+  container.querySelectorAll(".scale-btn").forEach(b => {
+    b.classList.toggle("active", parseInt(b.dataset.val) === val);
+  });
+  const badge = document.getElementById(`score-badge-${id}`);
+  badge.textContent = `${val}/${max}`;
+  badge.classList.remove("na");
+  updateTotal();
+  checkCardCompletion(id);
+}
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ── Comment joining ───────────────────────────────────────────────────────────
+// Comments are joined with ", " - except after text that already ends in
+// sentence punctuation (. ! ? :), which gets a plain space instead, so you
+// get "Slow down! Enunciate, Louder" rather than "Slow down!, Enunciate".
+function joinComment(value, text) {
+  const v = value.trim();
+  if (!v) return text;
+  return v + (/[.!?:]$/.test(v) ? " " : ", ") + text;
+}
+
+// The separator that follows a piece: a plain space if the piece ends in
+// sentence punctuation, otherwise ", " (mirrors joinComment).
+function sepAfter(text) {
+  return /[.!?:]$/.test(text.trim()) ? "\\s+" : ",\\s+";
+}
+
+// Matches `text` only as its own standalone piece: preceded by the start of
+// the box or whitespace, and followed by the end or its own separator. So the
+// "Enunciate" chip does NOT match inside "Enunciate more", and "Good" does
+// not match inside a typed "Good job".
+function phraseRegex(text) {
+  const t = text.trim();
+  const after = /[.!?:]$/.test(t) ? "(?=\\s|$)" : "(?=,\\s|$)";
+  return new RegExp(`(?:^|\\s)${escapeRegExp(t)}${after}`);
+}
+
+// Removes one standalone piece (given as a regex source) along with the
+// separator that belongs to it: the one AFTER it if anything follows,
+// otherwise the one BEFORE it. Since a separator is chosen by the text in
+// front of it, this always leaves the right separator between neighbors.
+function removePiece(value, src, sep) {
+  const mid = new RegExp(`(^|\\s)${src}${sep}(?=\\S)`);
+  if (mid.test(value)) return value.replace(mid, "$1").trim();
+  const end = new RegExp(`(?:,\\s+|\\s+|^)${src}\\s*$`);
+  return value.replace(end, "").trim();
+}
+
+function removeExactPhrase(value, text) {
+  return removePiece(value, escapeRegExp(text.trim()), sepAfter(text));
+}
+
+// Chip logic appends directly to the textarea
+function toggleChip(id, text, el) {
+  const ta = el.closest('.card').querySelector('.other-input');
+  if (el.classList.contains("active")) {
+    el.classList.remove("active");
+    ta.value = removeExactPhrase(ta.value, text);
+  } else {
+    el.classList.add("active");
+    ta.value = joinComment(ta.value, text);
+  }
+  state.others[id] = ta.value;
+  checkCardCompletion(id);
+}
+
+function checkCardCompletion(id) {
+  const card = document.getElementById(`card-${id}`);
+  if (!card) return;
+  const hasScore = state.scores[id] !== undefined;
+  const hasComment = (state.others[id] && state.others[id].trim().length > 0);
+
+  if (hasScore && hasComment) {
+    card.classList.add('completed');
+  } else {
+    card.classList.remove('completed');
+  }
+}
+
+function toggleOverall(button, text) {
+  const ta = document.getElementById("final-comment");
+  if (button.classList.contains("active")) {
+    button.classList.remove("active");
+    ta.value = removeExactPhrase(ta.value, text);
+  } else {
+    button.classList.add("active");
+    ta.value = joinComment(ta.value, text);
+  }
+  state.finalComment = ta.value;
+}
+
+function syncOverallChips(value) {
+  document.querySelectorAll('#overall-comment-chips .chip').forEach(chip => {
+    chip.classList.toggle('active', phraseRegex(chip.textContent).test(value));
+  });
+}
+
+function updateTotal() {
+  const { total, maxTotal } = calcTotal(state.scores);
+  const final = applyPenalty(total, state.timePenalty);
+  document.getElementById("total-score").textContent = fmtScore(final);
+  document.getElementById("max-score").textContent = maxTotal;
+  const pct = maxTotal > 0 ? ((final / maxTotal) * 100).toFixed(1) + "%" : "0%";
+  document.getElementById("pct-score").textContent =
+    pct + (state.timePenalty ? ` (−${state.timePenalty}% time)` : "");
+}
+
+// ── Time penalty ──────────────────────────────────────────────────────────────
+// Penalty is a percentage of the student's rubric score, rounded to 0.1.
+function applyPenalty(total, pct) {
+  return pct ? Math.round(total * (1 - pct / 100) * 10) / 10 : total;
+}
+
+function fmtScore(n) {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
+
+function fmtTime(sec) {
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+}
+
+// Accepts "2:45", "2:5" or a whole number of minutes ("3"). Returns seconds,
+// or null if the time can't be read.
+function parseTime(str) {
+  const s = String(str || "").trim();
+  let m = s.match(/^(\d+):(\d{1,2})$/);
+  if (m) return parseInt(m[1]) * 60 + parseInt(m[2]);
+  m = s.match(/^(\d+)$/);
+  if (m) return parseInt(m[1]) * 60;
+  return null;
+}
+
+// "over" / "under" / "within", or null if no readable time yet.
+function timeStatus(timeStr) {
+  const sec = parseTime(timeStr);
+  if (sec === null) return null;
+  if (sec > TIME_MAX_SEC) return "over";
+  if (sec < TIME_MIN_SEC) return "under";
+  return "within";
+}
+
+// Enables the penalty checkboxes only when the time is outside the limit.
+// If the time moves back inside the limit, any checked penalty is cleared.
+function updatePenaltyAvailability() {
+  const row = document.getElementById("penalty-row");
+  if (!row) return;
+  const status = timeStatus(state.time);
+  const sec = parseTime(state.time);
+  const available = status === "over" || status === "under";
+  const range = `${fmtTime(TIME_MIN_SEC)}–${fmtTime(TIME_MAX_SEC)}`;
+
+  row.classList.toggle("available", available);
+  row.querySelectorAll(".penalty-box").forEach(box => {
+    box.disabled = !available;
+    box.closest(".penalty-opt").classList.toggle("disabled", !available);
+  });
+
+  const statusEl = document.getElementById("penalty-status");
+  if (status === "over")        statusEl.textContent = `Over time by ${fmtTime(sec - TIME_MAX_SEC)} (limit ${range})`;
+  else if (status === "under")  statusEl.textContent = `Under time by ${fmtTime(TIME_MIN_SEC - sec)} (limit ${range})`;
+  else if (status === "within") statusEl.textContent = `Within limit (${range})`;
+  else                          statusEl.textContent = `Enter a time to check the ${range} limit`;
+
+  if (!available && state.timePenalty) setPenalty(state.timePenalty, false);
+}
+
+// Checkboxes act like "pick at most one": checking one unchecks the others.
+function setPenalty(pct, checked) {
+  state.timePenalty = checked ? pct : 0;
+  document.querySelectorAll(".penalty-box").forEach(box => {
+    box.checked = parseInt(box.dataset.pct) === state.timePenalty;
+  });
+  updateTotal();
+}
+
+// Explanation line for the printed sheet (empty when no penalty applied).
+function penaltyNote(snap) {
+  if (!snap.timePenalty) return "";
+  const status = timeStatus(snap.time);
+  const range = `${fmtTime(TIME_MIN_SEC)}–${fmtTime(TIME_MAX_SEC)}`;
+  const final = applyPenalty(snap.total, snap.timePenalty);
+  return `<strong>Time penalty: −${snap.timePenalty}%.</strong> ` +
+    `Your speech time of ${escapeHTML(snap.time)} was ${status === "under" ? "under" : "over"} the ${range} time limit, ` +
+    `so ${snap.timePenalty}% was deducted from your rubric score ` +
+    `(${fmtScore(snap.total)} → ${fmtScore(final)} out of ${snap.maxTotal}).`;
+}
+
+// ── Um counter ────────────────────────────────────────────────────────────────
+// Zero-width space tags the auto-inserted text so it can never be confused
+// with (or accidentally strip) identical wording you type by hand. It's
+// visually invisible in the textarea, the export, and anywhere else the
+// comment is read - but it lets us find and remove *only* our own insertion.
+const UM_MARKER = '\u200B';
+const UM_COMMENT_SRC = `${UM_MARKER}Filler words \\(ums\\/uhs\\): \\d+\\.`;
+
+// Keeps the Delivery comment box in sync with the live um count.
+// Strips any previously injected count (wherever it landed, even if a
+// chip got added after it), then re-appends the current one at the end
+// (only when >1), so it never stacks duplicates and always reflects state.
+function syncUmCountComment() {
+  const ta = document.querySelector('#card-delivery .other-input');
+  if (!ta) return;
+
+  let base = state.others['delivery'] || "";
+  // Loop in case an older copy somehow got duplicated
+  for (let prev = null; prev !== base; ) {
+    prev = base;
+    base = removePiece(base, UM_COMMENT_SRC, "\\s+");
+  }
+  if (state.umCount > 1) {
+    base = joinComment(base, `${UM_MARKER}Filler words (ums/uhs): ${state.umCount}.`);
+  }
+
+  state.others['delivery'] = base;
+  ta.value = base;
+  checkCardCompletion('delivery');
+}
+
+function bumpUm() {
+  state.umCount = (state.umCount || 0) + 1;
+  document.getElementById("um-count-display").textContent = state.umCount;
+  const btn = document.getElementById("um-btn");
+  btn.classList.remove("bump");
+  void btn.offsetWidth;
+  btn.classList.add("bump");
+  syncUmCountComment();
+}
+
+function resetUm() {
+  state.umCount = 0;
+  document.getElementById("um-count-display").textContent = 0;
+  syncUmCountComment();
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function buildHeaderRow() {
+  const cols = ["Timestamp", "Speaker's name"];
+  RUBRIC.forEach(sec => sec.items.forEach(item => {
+    cols.push(item.label);
+    cols.push(item.label + " comments");
+  }));
+  // "Total" and "Percentage" are the final grade (after any time penalty)
+  cols.push("time", "Comments", "Um Count", "Rubric Total", "Time Penalty", "Total", "Percentage");
+  return cols;
+}
+
+function buildDataRow(snap) {
+  const ts = snap.timestamp || new Date().toLocaleString("en-US", { month:"numeric", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit", second:"2-digit", hour12:true });
+  const row = [ts, snap.speaker];
+  RUBRIC.forEach(sec => sec.items.forEach(item => {
+    const score = snap.scores[item.id] ?? "";
+    const comment = snap.others[item.id] || "";
+    row.push(score, comment);
+  }));
+  const final = applyPenalty(snap.total, snap.timePenalty);
+  row.push(snap.time, snap.finalComment, snap.umCount ?? 0, snap.total);
+  row.push(snap.timePenalty ? `-${snap.timePenalty}%` : "", fmtScore(final));
+  row.push(snap.maxTotal > 0 ? ((final / snap.maxTotal) * 100).toFixed(2) + "%" : "");
+  return row;
+}
+
+function exportAllCSV() {
+  if (session.length === 0) { showToast("No grades in session yet!"); return; }
+  const rows = [buildHeaderRow(), ...session.map(buildDataRow)];
+  // Strip the invisible um-marker before export - it's only an internal
+  // tag for telling auto-text apart from typed text and has no purpose
+  // (and no safe encoding) once it leaves the app.
+  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/\u200B/g, "").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a = document.createElement("a");
+  // Prepend a UTF-8 BOM so Excel detects the encoding correctly instead of
+  // falling back to Windows-1252 and mangling any non-ASCII characters.
+  a.href = "data:text/csv;charset=utf-8," + encodeURIComponent("\uFEFF" + csv);
+  a.download = `Informative_speech_grades_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showToast(`Exported ${session.length} student(s) to CSV!`);
+}
+
+// ── Print feedback sheets ─────────────────────────────────────────────────────
+// Builds one page per saved student (same data as the CSV) and opens the
+// browser's print dialog. Everything else on the page is hidden while printing.
+function escapeHTML(str) {
+  return String(str ?? "")
+    .replace(/\u200B/g, "")
+    .replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+function buildPrintSheet(snap) {
+  const final = applyPenalty(snap.total, snap.timePenalty);
+  const pct = snap.maxTotal > 0 ? ((final / snap.maxTotal) * 100).toFixed(1) + "%" : "";
+  const note = penaltyNote(snap);
+  const date = (snap.timestamp || "").split(",")[0];
+
+  let rows = "";
+  RUBRIC.forEach(sec => {
+    rows += `<tr class="sec"><td colspan="3">${escapeHTML(sec.section)}</td></tr>`;
+    sec.items.forEach(item => {
+      rows += `<tr>
+        <td class="crit">${escapeHTML(item.label)}</td>
+        <td class="score">${escapeHTML(snap.scores[item.id] ?? "—")} / ${item.max}</td>
+        <td>${escapeHTML(snap.others[item.id])}</td>
+      </tr>`;
+    });
+  });
+
+  return `<div class="print-sheet">
+    <div class="print-head">
+      <div>
+        <h2>${escapeHTML(snap.speaker)}</h2>
+        <div class="print-sub">${escapeHTML(PRINT_TITLE)}${date ? " · " + escapeHTML(date) : ""}${snap.time ? " · Time: " + escapeHTML(snap.time) : ""}</div>
+      </div>
+      <div class="print-total">
+        <div class="big">${fmtScore(final)} / ${snap.maxTotal}</div>
+        <div class="small">${pct}</div>
+      </div>
+    </div>
+    <table class="print-table">
+      <thead><tr><th>Criterion</th><th>Score</th><th>Comments</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${note ? `<div class="print-penalty">${note}</div>` : ""}
+    <div class="print-overall">
+      <div class="lbl">Overall comments</div>
+      <div>${escapeHTML(snap.finalComment)}</div>
+    </div>
+  </div>`;
+}
+
+function renderPrintSheets() {
+  document.getElementById("print-root").innerHTML = session.length
+    ? session.map(buildPrintSheet).join("")
+    : `<div class="print-sheet"><p>No grades saved in this session yet.</p></div>`;
+}
+
+function printAll() {
+  if (session.length === 0) { showToast("No grades in session yet!"); return; }
+  renderPrintSheets();
+  window.print();
+}
+
+// Ctrl+P / the browser's own Print menu go through here too, so they print
+// the same feedback sheets instead of a blank page.
+window.addEventListener("beforeprint", renderPrintSheets);
+
+function clearForm() {
+  clearInterval(timerInterval);
+  timerStart = null;
+  manualTime = false;
+  state.scores = {};
+  state.time = "";
+  state.finalComment = "";
+  state.umCount = 0;
+  state.timePenalty = 0;
+  state.others = {};
+  buildUI();
+  document.getElementById("speaker-select").value = "";
+  document.getElementById("um-count-display").textContent = 0;
+  clearDraft();
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+const storedRoster = loadStoredRoster();
+// A saved empty roster stays empty; defaults are used only on first run
+roster = Array.isArray(storedRoster) ? storedRoster : DEFAULT_ROSTER;
+if (!Array.isArray(storedRoster)) persistRoster();
+
+rebuildSpeakerSelect();
+buildUI();
+renderSessionBar();
+checkRestore();
+
+</script>
+
+<!-- Floating Um Counter -->
+<div id="um-counter">
+  <button id="um-btn" onclick="bumpUm()" title="Tap each time student says um/uh">
+    <span id="um-count-display">0</span>
+    <span id="um-label">um/uh</span>
+  </button>
+  <button id="um-reset" onclick="resetUm()" title="Reset">↺</button>
+</div>
+</body>
+</html>
